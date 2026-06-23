@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Parshwa Heights - Society Software</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset & Basic Setup */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: #f3f4f6; color: #1f2937; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; }
+
+        /* --- LOGIN SCREEN STYLES --- */
+        #loginScreen { display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; background-color: #f3f4f6; padding: 20px; }
+        .login-card { background: #ffffff; padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 380px; text-align: center; border: 1px solid #e5e7eb; border-top: 5px solid #10b981; }
+        .login-card h2 { font-size: 22px; color: #111827; margin-bottom: 5px; }
+        .login-card p { font-size: 13px; color: #6b7280; margin-bottom: 25px; }
+        .login-card .input-group { text-align: left; margin-bottom: 15px; }
+        .login-card input { width: 100%; padding: 14px 15px; font-size: 15px; border: 1px solid #d1d5db; border-radius: 10px; outline: none; transition: all 0.2s; background: #f9fafb; }
+        .login-card input:focus { border-color: #10b981; background: #fff; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .login-btn { width: 100%; padding: 14px; background-color: #10b981; color: white; font-size: 16px; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        .login-btn:hover { background-color: #059669; }
+        .error-msg { color: #ef4444; font-size: 13px; margin-top: 10px; display: none; font-weight: 500; }
+
+        /* --- DASHBOARD STYLES --- */
+        #appScreen { display: none; height: 100vh; width: 100vw; }
+        .sidebar { width: 260px; background-color: #ffffff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; z-index: 10; }
+        .sidebar-header { padding: 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e5e7eb; }
+        .logo-icon { width: 32px; height: 32px; background-color: #10b981; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; }
+        .sidebar-header h2 { font-size: 15px; color: #111827; font-weight: 700; }
+        .sidebar-header p { font-size: 11px; color: #6b7280; text-transform: uppercase; }
+        .nav-section { padding: 15px 20px 5px; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; }
+        .nav-menu { padding: 0 10px; flex: 1; overflow-y: auto; }
+        .nav-item { padding: 12px 15px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500; color: #4b5563; cursor: pointer; transition: 0.2s; }
+        .nav-item:hover { background-color: #f9fafb; }
+        .nav-item.active { background-color: #ecfdf5; color: #059669; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .top-header { height: 64px; background-color: #ffffff; display: flex; justify-content: flex-end; align-items: center; padding: 0 30px; border-bottom: 1px solid #e5e7eb; z-index: 5; }
+        .mobile-header-brand { display: none; align-items: center; gap: 10px; }
+        .mobile-header-brand h2 { font-size: 16px; font-weight: 700; color: #111827; }
+        
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-badge { background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #e5e7eb;}
+        .logout-btn { background: #fee2e2; color: #ef4444; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+        
+        .content-body { flex: 1; padding: 24px 30px; overflow-y: auto; }
+        
+        /* Tab Views */
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Overview Details */
+        .page-header { margin-bottom: 20px; }
+        .page-header h1 { font-size: 22px; color: #111827; font-weight: 700; margin-bottom: 4px; }
+        .page-header p { color: #6b7280; font-size: 13px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 24px; }
+        .stat-card { background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; border-left-width: 4px; }
+        .stat-card.blue { border-left-color: #3b82f6; }
+        .stat-card.yellow { border-left-color: #f59e0b; }
+        .stat-card.green { border-left-color: #10b981; }
+        .stat-content h3 { font-size: 13px; color: #111827; font-weight: 600; margin-bottom: 8px; }
+        .stat-content .number { font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 2px; }
+        .stat-content .desc { font-size: 11px; color: #6b7280; }
+        
+        .filter-card { background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .filter-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .input-group { flex: 1; min-width: 200px; }
+        .input-group label { font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px;}
+        .filter-row input { padding: 12px 14px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; width: 100%; background: #f9fafb; }
+        .filter-row input:focus { border-color: #10b981; background: #fff;}
+        .btn { padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; text-align: center; }
+        .btn-primary { background-color: #10b981; color: white; }
+        .btn-secondary { background-color: #f3f4f6; color: #4b5563; }
+        
+        .table-container { background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+        th { padding: 12px 16px; color: #6b7280; font-weight: 600; font-size: 12px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;}
+        td { padding: 16px; color: #374151; font-size: 13px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+        .flat-badge { color: #111827; font-weight: 600; }
+        .vehicle-tag { background-color: #f3f4f6; color: #4b5563; padding: 4px 8px; border-radius: 6px; margin-right: 4px; font-size: 12px; font-weight: 500; border: 1px solid #e5e7eb; display: inline-block; }
+        .contact-wrapper { display: flex; align-items: center; gap: 8px; margin-top: 4px;}
+        .call-btn { background-color: #ecfdf5; color: #059669; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; text-decoration: none; border: 1px solid #a7f3d0; font-size: 12px; }
+        .status-badge { background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .highlight { background-color: #fef08a; padding: 2px; border-radius: 2px; }
+        .hidden-state { text-align: center; padding: 50px 20px; color: #6b7280; }
+        .hidden-state span { font-size: 40px; display: block; margin-bottom: 10px; }
+        .hidden-state h3 { color: #111827; font-size: 16px; margin-bottom: 5px; }
+
+        /* Notice Board */
+        .notices-list { display: flex; flex-direction: column; gap: 16px; }
+        .notice-card { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; border-left-width: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .notice-card.urgent { border-left-color: #ef4444; }
+        .notice-card.info { border-left-color: #3b82f6; }
+        .notice-card.success { border-left-color: #10b981; }
+        .notice-date { font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+        .notice-card h3 { color: #111827; margin-bottom: 8px; font-size: 16px; }
+        .notice-card p { color: #4b5563; font-size: 14px; line-height: 1.5; }
+
+        /* Mobile App Nav */
+        .bottom-nav { display: none; background: #ffffff; border-top: 1px solid #e5e7eb; position: fixed; bottom: 0; width: 100%; height: 65px; z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .bottom-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: #6b7280; text-decoration: none; gap: 4px; cursor: pointer; transition: 0.2s; font-weight: 500;}
+        .bottom-nav-item.active { color: #10b981; }
+        .bottom-nav-item .icon { font-size: 20px; margin-bottom: 2px; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; } 
+            .top-header { justify-content: space-between; padding: 0 16px; }
+            .mobile-header-brand { display: flex; } 
+            .content-body { padding: 16px; padding-bottom: 85px; } 
+            .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+            .filter-row { flex-direction: column; align-items: stretch; gap: 12px; }
+            .btn { width: 100%; } 
+            .input-group { min-width: 100%; }
+            .bottom-nav { display: flex; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <div class="login-card">
+            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                <div class="logo-icon" style="width: 50px; height: 50px; font-size: 20px;">PH</div>
+            </div>
+            <h2>Society Login</h2>
+            <p>Parshwa Heights System</p>
+            
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            
+            <button class="login-btn" onclick="checkLogin()">Secure Login</button>
+            <div class="error-msg" id="errorMsg">Incorrect Username or Password!</div>
+        </div>
+    </div>
+
+    <div id="appScreen">
+        
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon">PH</div>
+                <div>
+                    <h2>Parshwa Heights</h2>
+                    <p>C-3 Wing</p>
+                </div>
+            </div>
+            <div class="nav-section">Dashboard</div>
+            <div class="nav-menu">
+                <div class="nav-item active" id="sideNavOverview" onclick="switchTab('overview')">
+                    📊 Overview
+                </div>
+                <div class="nav-item" id="sideNavNotices" onclick="switchTab('notices')">
+                    📌 Notice Board
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="mobile-header-brand">
+                    <div class="logo-icon">PH</div>
+                    <h2>Parshwa Heights</h2>
+                </div>
+                <div class="header-right">
+                    <span class="user-badge" id="userBadge">👤 Admin</span>
+                    <button class="logout-btn" onclick="logout()">Log Out</button>
+                </div>
+            </header>
+
+            <div class="content-body">
+                
+                <div id="viewOverview" class="view-section active">
+                    <div class="page-header">
+                        <h1>Resident Details Directory</h1>
+                        <p>Search specifically to view confidential records.</p>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-content">
+                                <h3>Total Flats (C-3)</h3>
+                                <div class="number">28</div>
+                                <div class="desc">Registered units</div>
+                            </div>
+                        </div>
+                        <div class="stat-card yellow">
+                            <div class="stat-content">
+                                <h3>Empty Flats</h3>
+                                <div class="number">4</div>
+                                <div class="desc">101, 104, 503, 703</div>
+                            </div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-content">
+                                <h3>Total Vehicles</h3>
+                                <div class="number">36</div>
+                                <div class="desc">Currently registered</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-card">
+                        <div class="filter-row">
+                            <div class="input-group">
+                                <label>Search Directory</label>
+                                <input type="text" id="searchInput" placeholder="Enter flat no or name...">
+                            </div>
+                            <button class="btn btn-primary" id="findBtn">🔍 Search</button>
+                            <button class="btn btn-secondary" id="resetBtn">✖ Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="dataTable">
+                            <thead id="tableHead">
+                                </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="viewNotices" class="view-section">
+                    <div class="page-header">
+                        <h1>📌 Society Notice Board</h1>
+                        <p>Important updates, alerts, and announcements.</p>
+                    </div>
+                    
+                    <div class="notices-list">
+                        <div class="notice-card info">
+                            <div class="notice-date"><span>🕒</span> Updated Just Now</div>
+                            <h3>Welcome to the Parshwa Heights Portal</h3>
+                            <p>All residents are requested to ensure their data is correctly mapped. If you have recently changed your details or have tenants moving in, please inform the secretary to keep the portal updated.</p>
+                        </div>
+
+                        <div class="notice-card urgent">
+                            <div class="notice-date"><span>🕒</span> June 22, 2026</div>
+                            <h3>Water Tank Cleaning & Maintenance</h3>
+                            <p>Please note that the overhead water tank of C-3 wing will be cleaned this upcoming Sunday. Expect a water supply interruption between 10:00 AM and 02:00 PM. Kindly store sufficient water in advance.</p>
+                        </div>
+
+                        <div class="notice-card success">
+                            <div class="notice-date"><span>🕒</span> June 18, 2026</div>
+                            <h3>Visitor Parking Discipline</h3>
+                            <p>This is a gentle reminder that residents should park their vehicles strictly in their assigned parking slots. Vehicles parked in visitor slots or common areas may be fined by the society management.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bottom-nav">
+                <div class="bottom-nav-item active" id="mobileNavOverview" onclick="switchTab('overview')">
+                    <span class="icon">📊</span>
+                    <span>Overview</span>
+                </div>
+                <div class="bottom-nav-item" id="mobileNavNotices" onclick="switchTab('notices')">
+                    <span class="icon">📌</span>
+                    <span>Notices</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // GLOBAL STATE FOR ROLE
+        let currentRole = 'admin'; // Can be 'admin' or 'security'
+
+        // --- TAB SWITCHING LOGIC ---
+        function switchTab(tabName) {
+            document.getElementById('sideNavOverview').classList.remove('active');
+            document.getElementById('sideNavNotices').classList.remove('active');
+            document.getElementById('mobileNavOverview').classList.remove('active');
+            document.getElementById('mobileNavNotices').classList.remove('active');
+            
+            document.getElementById('viewOverview').classList.remove('active');
+            document.getElementById('viewNotices').classList.remove('active');
+
+            if (tabName === 'overview') {
+                document.getElementById('sideNavOverview').classList.add('active');
+                document.getElementById('mobileNavOverview').classList.add('active');
+                document.getElementById('viewOverview').classList.add('active');
+            } else if (tabName === 'notices') {
+                document.getElementById('sideNavNotices').classList.add('active');
+                document.getElementById('mobileNavNotices').classList.add('active');
+                document.getElementById('viewNotices').classList.add('active');
+            }
+        }
+
+        // --- LOGIN LOGIC WITH ROLE ACCESS ---
+        function checkLogin() {
+            const user = document.getElementById('username').value.trim().toLowerCase();
+            const pass = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const userBadge = document.getElementById('userBadge');
+
+            if (user === 'admin' && pass === '123') {
+                currentRole = 'admin';
+                userBadge.innerHTML = '👤 Admin';
+                processLogin();
+            } 
+            else if (user === 'security' && pass === '12345') {
+                currentRole = 'security';
+                userBadge.innerHTML = '👮 Guard';
+                processLogin();
+            } 
+            else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        function processLogin() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+            
+            buildTableHeaders(); // Restrict/Show headers based on role
+            switchTab('overview');
+            renderTable(''); // Initialize with hidden state
+        }
+
+        function logout() {
+            currentRole = '';
+            document.getElementById('appScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('searchInput').value = '';
+            renderTable(''); 
+        }
+
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkLogin();
+        });
+
+
+        // --- DASHBOARD DATA & LOGIC ---
+        const societyData = [
+            { flat: "101", owner: "Empty Flat", contact: "", living: "", living_contact: "", v1: "", v2: "", v3: "", v4: "" },
+            { flat: "102", owner: "Devendra Shetty", contact: "9960612545", living: "", living_contact: "", v1: "MH20FU9584", v2: "MH20CJ4588", v3: "MH20BB0084", v4: "" },
+            { flat: "103", owner: "Laxmikant Kulkarni", contact: "7058797839", living: "", living_contact: "", v1: "MH20FT9359", v2: "MH20FU1619", v3: "", v4: "" },
+            { flat: "104", owner: "Empty Flat", contact: "", living: "", living_contact: "", v1: "", v2: "", v3: "", v4: "" },
+            { flat: "201", owner: "Suraj Pawar", contact: "7020905401", living: "Ganesh kajale", living_contact: "9021508857", v1: "MH20EU1351", v2: "", v3: "", v4: "" },
+            { flat: "202", owner: "Ashok Sarwesh", contact: "9677274391", living: "", living_contact: "", v1: "MH20GE1931", v2: "MH20FL2919", v3: "", v4: "" },
+            { flat: "203", owner: "Ashish Anandgaonkar", contact: "9970594888", living: "self", living_contact: "9970594888", v1: "Mh20EV2203", v2: "", v3: "", v4: "" },
+            { flat: "204", owner: "Sachin Chhajed", contact: "7757011055", living: "K Karthikeyan", living_contact: "8056554592", v1: "TN28AP8092", v2: "", v3: "", v4: "" },
+            { flat: "301", owner: "Vijay Gitte", contact: "", living: "Sachin Mundkar", living_contact: "8888001265", v1: "GJ02DE1000", v2: "MH26CW2178", v3: "", v4: "" },
+            { flat: "302", owner: "Manoj Munde", contact: "9420016223", living: "Arun Shirsath", living_contact: "8485017763", v1: "26BH80078", v2: "GJ23BR8106", v3: "MH15DR3028", v4: "MH44S8122" },
+            { flat: "303", owner: "Vishwamber Deshpande", contact: "9422711305", living: "", living_contact: "", v1: "MH20BN3301", v2: "MH20ED7695", v3: "", v4: "" },
+            { flat: "304", owner: "Rushikesh Borde", contact: "9689358540", living: "", living_contact: "", v1: "MH20EY8975", v2: "", v3: "", v4: "" },
+            { flat: "401", owner: "Nitin Vyas", contact: "9423771058", living: "", living_contact: "", v1: "MH12JW5725", v2: "MH20EV7919", v3: "", v4: "" },
+            { flat: "402", owner: "Shrikant Gholve & Snehal", contact: "9511610035", living: "", living_contact: "", v1: "MH44S8186", v2: "MH44W8536", v3: "", v4: "" },
+            { flat: "403", owner: "Jaspal Oberoi", contact: "", living: "", living_contact: "", v1: "", v2: "", v3: "", v4: "" },
+            { flat: "404", owner: "Ravi Satyal", contact: "9822066512", living: "", living_contact: "", v1: "MH20ER2590", v2: "MH31EU7957", v3: "MH20HG7737", v4: "" },
+            { flat: "501", owner: "Shailesh Patange", contact: "", living: "Patel", living_contact: "9850421707", v1: "MH24V1656", v2: "MH20FJ3175", v3: "", v4: "" },
+            { flat: "502", owner: "Krushna Wakode", contact: "8208070158", living: "Sunil Jaybhaye", living_contact: "9130533050", v1: "MH20HH7302", v2: "MH28BH4240", v3: "MH20HU2686", v4: "" },
+            { flat: "503", owner: "Empty Flat", contact: "", living: "", living_contact: "", v1: "", v2: "", v3: "", v4: "" },
+            { flat: "504", owner: "Prasanna Lohekar", contact: "9422876176", living: "Shashikant", living_contact: "7020608293", v1: "MH19DX9920", v2: "MH19EP6584", v3: "MH19DZ1788", v4: "" },
+            { flat: "601", owner: "Prahlad Bondre", contact: "9657484586", living: "Samadhan kakad", living_contact: "9011375568", v1: "MH46BZ1292", v2: "MH01DL8626", v3: "", v4: "" },
+            { flat: "602", owner: "Dnyaneshwar Savde", contact: "8459262513", living: "", living_contact: "", v1: "RJ12SW1928", v2: "RJ12CB1656", v3: "", v4: "" },
+            { flat: "603", owner: "Shivraj Tupe", contact: "8770403924", living: "", living_contact: "", v1: "MH20FF8848", v2: "MP09UB1534", v3: "", v4: "" },
+            { flat: "604", owner: "Nirmala Jawadwad", contact: "7020457380", living: "", living_contact: "", v1: "", v2: "", v3: "", v4: "" },
+            { flat: "701", owner: "Sandesh Munde", contact: "9011180472", living: "", living_contact: "", v1: "MH20CW5031", v2: "MH20FY5893", v3: "", v4: "" },
+            { flat: "702", owner: "Varun Kumar", contact: "8408920234", living: "", living_contact: "", v1: "", v2: "", v3: "", v4: "" },
+            { flat: "703", owner: "Empty Flat", contact: "", living: "", living_contact: "", v1: "", v2: "", v3: "", v4: "" },
+            { flat: "704", owner: "Ravi Sugandhi", contact: "9075027883", living: "", living_contact: "", v1: "MH20FY6716", v2: "MH20HD3568", v3: "", v4: "" }
+        ];
+
+        const searchInput = document.getElementById('searchInput');
+        const tableBody = document.getElementById('tableBody');
+        const tableHead = document.getElementById('tableHead');
+
+        function buildTableHeaders() {
+            let theadHtml = `
+                <tr>
+                    <th>Flat</th>
+                    <th>Owner</th>
+                    <th>Resident</th>`;
+            
+            // Render Vehicle headers ONLY if role is admin
+            if (currentRole === 'admin') {
+                theadHtml += `
+                    <th>Vehicle 1</th>
+                    <th>Vehicle 2</th>
+                    <th>Vehicle 3</th>
+                    <th>Vehicle 4</th>`;
+            }
+            
+            theadHtml += `<th>Status</th></tr>`;
+            tableHead.innerHTML = theadHtml;
+        }
+
+        function highlightMatch(text, query) {
+            if (!query || !text) return text;
+            const idx = text.toLowerCase().indexOf(query);
+            if (idx === -1) return text;
+            const match = text.substring(idx, idx + query.length);
+            return text.substring(0, idx) + `<span class="highlight">${match}</span>` + text.substring(idx + query.length);
+        }
+
+        function generateContactHTML(name, phone, query) {
+            if(!name && !phone) return '-';
+            let html = `<div><strong>${highlightMatch(name, query)}</strong></div>`;
+            if(phone) {
+                html += `
+                <div class="contact-wrapper">
+                    <span style="color: #6b7280;">${highlightMatch(phone, query)}</span>
+                    <a href="tel:${phone}" class="call-btn" title="Call">📞</a>
+                </div>`;
+            }
+            return html;
+        }
+
+        function renderTable(query = '') {
+            tableBody.innerHTML = '';
+            const colSpanCount = currentRole === 'admin' ? 8 : 4;
+            
+            if (query === '') {
+                tableBody.innerHTML = `
+                <tr><td colspan="${colSpanCount}">
+                    <div class="hidden-state"><span>🔒</span><h3>Data Hidden for Security</h3><p>Type flat no or name in the search box to view details.</p></div>
+                </td></tr>`;
+                return;
+            }
+
+            let count = 0;
+            societyData.forEach(row => {
+                let isMatch = false;
+
+                // Restrict search functionality based on role
+                if (currentRole === 'admin') {
+                    // Admin can search by anything (including vehicles)
+                    isMatch = Object.values(row).some(val => val.toLowerCase().includes(query));
+                } else {
+                    // Security can ONLY search by Flat, Name, or Contact (vehicles ignored)
+                    isMatch = (row.flat.toLowerCase().includes(query)) ||
+                              (row.owner.toLowerCase().includes(query)) ||
+                              (row.contact.toLowerCase().includes(query)) ||
+                              (row.living.toLowerCase().includes(query)) ||
+                              (row.living_contact.toLowerCase().includes(query));
+                }
+
+                if (isMatch) {
+                    count++;
+                    const isEmpty = row.owner.includes("Empty") || row.owner.includes("Vaccnt") || row.owner.includes("Vacant");
+                    const tr = document.createElement('tr');
+                    
+                    let trHtml = `
+                        <td><span class="flat-badge">${highlightMatch(row.flat, query)}</span></td>
+                        <td>${isEmpty ? '<em>Empty Flat</em>' : generateContactHTML(row.owner, row.contact, query)}</td>
+                        <td>${generateContactHTML(row.living, row.living_contact, query)}</td>
+                    `;
+
+                    // Inject Vehicle data ONLY if role is admin
+                    if (currentRole === 'admin') {
+                        trHtml += `
+                            <td>${row.v1 ? `<span class="vehicle-tag">${highlightMatch(row.v1, query)}</span>` : '-'}</td>
+                            <td>${row.v2 ? `<span class="vehicle-tag">${highlightMatch(row.v2, query)}</span>` : '-'}</td>
+                            <td>${row.v3 ? `<span class="vehicle-tag">${highlightMatch(row.v3, query)}</span>` : '-'}</td>
+                            <td>${row.v4 ? `<span class="vehicle-tag">${highlightMatch(row.v4, query)}</span>` : '-'}</td>
+                        `;
+                    }
+
+                    trHtml += `<td><span class="status-badge" style="${isEmpty ? 'background:#fef2f2; color:#ef4444;' : ''}">${isEmpty ? 'Vacant' : 'Occupied'}</span></td>`;
+                    
+                    tr.innerHTML = trHtml;
+                    tableBody.appendChild(tr);
+                }
+            });
+
+            if (count === 0) {
+                tableBody.innerHTML = `<tr><td colspan="${colSpanCount}"><div class="hidden-state"><span>⚠️</span><h3>No Record Found</h3><p>No matching details found for "${query}".</p></div></td></tr>`;
+            }
+        }
+
+        document.getElementById('findBtn').addEventListener('click', () => renderTable(searchInput.value.toLowerCase().trim()));
+        document.getElementById('resetBtn').addEventListener('click', () => { searchInput.value = ''; renderTable(''); });
+        searchInput.addEventListener('keyup', (e) => renderTable(e.target.value.toLowerCase().trim()));
+        
+        // Initial setup
+        buildTableHeaders();
+    </script>
+</body>
+</html>
